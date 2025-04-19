@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Twitch Viewer Input</title>
+</head>
+<body>
+  <h2>Send a Shoutout!</h2>
+  <input type="text" id="nickname" placeholder="Your nickname" />
+  <input type="text" id="message" placeholder="Your message" />
+  <button onclick="send()">Send</button>
+
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+	  apiKey: "AIzaSyB5tcBiTd8IXtZ4q4UN8ex-kZtzqEFQyRg",
+	  authDomain: "bar-badi3a.firebaseapp.com",
+	  databaseURL: "https://bar-badi3a-default-rtdb.europe-west1.firebasedatabase.app",
+	  projectId: "bar-badi3a",
+	  storageBucket: "bar-badi3a.firebasestorage.app",
+	  messagingSenderId: "417008167868",
+	  appId: "1:417008167868:web:7459cc6491defeeb9219b9"
+	};
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    async function send() {
+      const nickname = document.getElementById("nickname").value.trim();
+      const message = document.getElementById("message").value.trim();
+      if (!nickname || !message) return alert("Please fill both fields!");
+
+      const timestamp = new Date().toISOString();
+      let ip = "unknown";
+
+      try {
+        const response = await fetch("https://api.ipify.org?format=json");
+        const data = await response.json();
+        ip = data.ip;
+      } catch (e) {
+        console.warn("IP lookup failed", e);
+      }
+
+      const entry = { nickname, message, timestamp, ip };
+      db.ref("messages").push(entry);
+
+      document.getElementById("nickname").value = "";
+      document.getElementById("message").value = "";
+    }
+  </script>
+</body>
+</html>

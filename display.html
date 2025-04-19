@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Live Shoutouts 🎉</title>
+  <style>
+    body {
+      background: black;
+      color: lime;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    #marquee-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding-left: 100%;
+    }
+
+    .shoutout {
+      white-space: nowrap;
+      font-size: 3em;
+      animation: scrollLeft 10s linear;
+    }
+
+    @keyframes scrollLeft {
+      0% {
+        transform: translateX(0%);
+      }
+      100% {
+        transform: translateX(-200%);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="marquee-container"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-database-compat.js"></script>
+
+  <script>
+     const firebaseConfig = {
+	  apiKey: "AIzaSyB5tcBiTd8IXtZ4q4UN8ex-kZtzqEFQyRg",
+	  authDomain: "bar-badi3a.firebaseapp.com",
+	  databaseURL: "https://bar-badi3a-default-rtdb.europe-west1.firebasedatabase.app",
+	  projectId: "bar-badi3a",
+	  storageBucket: "bar-badi3a.firebasestorage.app",
+	  messagingSenderId: "417008167868",
+	  appId: "1:417008167868:web:7459cc6491defeeb9219b9"
+	};
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const marqueeContainer = document.getElementById("marquee-container");
+    const messageQueue = [];
+
+    // Add new messages to the queue
+    db.ref("messages").on("child_added", (snapshot) => {
+      const data = snapshot.val();
+      const text = `${data.message}`;
+      messageQueue.push(text);
+    });
+
+    // Function to show and scroll messages one by one
+    async function showNextMessage() {
+      if (messageQueue.length === 0) {
+        // No messages yet, wait and retry
+        setTimeout(showNextMessage, 1000);
+        return;
+      }
+
+      const text = messageQueue.shift();
+      marqueeContainer.innerHTML = "";
+
+      const shoutout = document.createElement("div");
+      shoutout.className = "shoutout";
+      shoutout.textContent = text;
+
+      marqueeContainer.appendChild(shoutout);
+
+      // Wait for animation to finish (matches scroll duration)
+      setTimeout(showNextMessage, 10000); // match @keyframes scrollLeft duration
+    }
+
+    showNextMessage(); // Start looping
+  </script>
+</body>
+</html>
