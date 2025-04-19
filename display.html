@@ -1,51 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Live Shoutouts 🎉</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shoutouts</title>
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
       padding: 0;
       background: black;
-      color: lime;
+      color: #00FF88;
       overflow: hidden;
-      font-family: 'Segoe UI', sans-serif;
       height: 100vh;
       width: 100vw;
-    }
-
-    #marquee-container {
-      position: absolute;
-      top: 50%;
-      left: 100%;
-      white-space: nowrap;
-      font-size: 3.5vw;
-      transform: translateY(-50%) scaleX(-1); /* 👈 flip horizontally */
-      animation: scrollLeft 10s linear infinite;
-    }
-
-    @keyframes scrollLeft {
-      0% { left: 100%; }
-      100% { left: -100%; }
+      font-family: 'Luckiest Guy', cursive;
+      transform: scaleX(-1); /* Mirror horizontally */
     }
 
     #wrapper {
       position: relative;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
+
+    #marquee {
+      position: absolute;
+      white-space: nowrap;
+      font-size: 10vw;
+      top: 50%;
+      left: 100%;
+      transform: translateY(-50%);
+	  transform: translateY(-50%) scaleY(2.5);
+      animation: scroll 10s linear;
+    }
+
+    @keyframes scroll {
+      0% { left: 100%; }
+      100% { left: -200%; }
     }
   </style>
 </head>
 <body>
 
-  <div id="marquee-container"></div>
+  <div id="wrapper">
+    <div id="marquee"></div>
+  </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-database-compat.js"></script>
 
   <script>
-     const firebaseConfig = {
+    const firebaseConfig = {
 	  apiKey: "AIzaSyB5tcBiTd8IXtZ4q4UN8ex-kZtzqEFQyRg",
 	  authDomain: "bar-badi3a.firebaseapp.com",
 	  databaseURL: "https://bar-badi3a-default-rtdb.europe-west1.firebasedatabase.app",
@@ -58,38 +64,33 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const marqueeContainer = document.getElementById("marquee-container");
-    const messageQueue = [];
+    const marquee = document.getElementById("marquee");
+    const queue = [];
 
-    // Add new messages to the queue
     db.ref("messages").on("child_added", (snapshot) => {
       const data = snapshot.val();
-      const text = `${data.message}`;
-      messageQueue.push(text);
+      const text = `${data.nickname}: ${data.message}`;
+      queue.push(text);
     });
 
-    // Function to show and scroll messages one by one
-    async function showNextMessage() {
-      if (messageQueue.length === 0) {
-        // No messages yet, wait and retry
-        setTimeout(showNextMessage, 1000);
+    async function showNext() {
+      if (queue.length === 0) {
+        setTimeout(showNext, 1000);
         return;
       }
 
-      const text = messageQueue.shift();
-      marqueeContainer.innerHTML = "";
+      const text = queue.shift();
+      marquee.textContent = text;
 
-      const shoutout = document.createElement("div");
-      shoutout.className = "shoutout";
-      shoutout.textContent = text;
+      // Restart animation
+      marquee.style.animation = 'none';
+      void marquee.offsetWidth; // force reflow
+      marquee.style.animation = null;
 
-      marqueeContainer.appendChild(shoutout);
-
-      // Wait for animation to finish (matches scroll duration)
-      setTimeout(showNextMessage, 10000); // match @keyframes scrollLeft duration
+      setTimeout(showNext, 10000); // match animation duration
     }
 
-    showNextMessage(); // Start looping
+    showNext();
   </script>
 </body>
 </html>
