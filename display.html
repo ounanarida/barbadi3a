@@ -51,7 +51,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-database-compat.js"></script>
 
   <script>
-    const firebaseConfig = {
+  const firebaseConfig = {
 	  apiKey: "AIzaSyB5tcBiTd8IXtZ4q4UN8ex-kZtzqEFQyRg",
 	  authDomain: "bar-badi3a.firebaseapp.com",
 	  databaseURL: "https://bar-badi3a-default-rtdb.europe-west1.firebasedatabase.app",
@@ -61,36 +61,44 @@
 	  appId: "1:417008167868:web:7459cc6491defeeb9219b9"
 	};
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-    const marquee = document.getElementById("marquee");
-    const queue = [];
+  const marquee = document.getElementById("marquee");
+  const queue = [];
+  const history = [];
 
-    db.ref("messages").on("child_added", (snapshot) => {
-      const data = snapshot.val();
-      const text = `${data.nickname}: ${data.message}`;
-      queue.push(text);
-    });
+  db.ref("messages").on("child_added", (snapshot) => {
+    const data = snapshot.val();
+    const text = `${data.nickname}: ${data.message}`;
+    queue.push(text);
+    history.push(text);
+  });
 
-    async function showNext() {
-      if (queue.length === 0) {
+  async function showNext() {
+    if (queue.length === 0) {
+      if (history.length > 0) {
+        // Refill the queue from history
+        queue.push(...history);
+      } else {
+        // No messages at all yet
         setTimeout(showNext, 1000);
         return;
       }
-
-      const text = queue.shift();
-      marquee.textContent = text;
-
-      // Restart animation
-      marquee.style.animation = 'none';
-      void marquee.offsetWidth; // force reflow
-      marquee.style.animation = null;
-
-      setTimeout(showNext, 10000); // match animation duration
     }
 
-    showNext();
-  </script>
+    const text = queue.shift();
+    marquee.textContent = text;
+
+    // Restart animation
+    marquee.style.animation = 'none';
+    void marquee.offsetWidth;
+    marquee.style.animation = null;
+
+    setTimeout(showNext, 10000); // match animation time
+  }
+
+  showNext();
+</script>
 </body>
 </html>
